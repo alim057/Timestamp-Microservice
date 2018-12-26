@@ -4,7 +4,6 @@
 // init project
 var express = require('express');
 var app = express();
-var bodyParser = require('body-parser')
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
@@ -32,17 +31,36 @@ var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
 
+// get time of right now
+app.get("/api/timestamp", function(req,res,next){
+  req.utc = new Date().toString();
+  req.unix = Math.floor(new Date().getTime()/1000)
+        next();
+        }, (req,res)=>{
+          res.json({unix:req.unix,utc:req.utc})
+        })
 
-// create get request for headers
-app.get('/api/whoami',function(req,res,next){
-  req.userAgent = req.headers['user-agent']
-  next()
-},(req,res,next)=>{
-  req.language = req.headers['accept-language']
-  next()
-},(req,res,next)=>{
-  req.ipAdress = req.headers['x-forwarded-for'].split(',')[0]
-  next()
-},(req,res)=>{
-  res.send({ipaddress:req.ipAdress,language:req.language,software:req.userAgent})
-})
+app.get("/api/timestamp/:date_string",function(req,res,next){
+  var regexDate = /\d\d\d\d-\d\d-\d\d/g
+  var regexUnix = /\d\d\d\d\d\d\d\d\d\d/
+                //1450137600
+    if(regexDate.test(req.params.date_string)){
+      req.date = req.params.date_string
+      console.log('a date')
+    }if(regexUnix.test(req.params.date_string)){
+      req.date = new Date(req.params.date_string*1000)
+      console.log('unix time')
+      console.log(req.date)
+    }
+    next();
+    },(req,res,next)=>{
+      req.unix = Math.floor(new Date(req.date).getTime()/1000)
+        console.log(req.unix)
+      next()
+    },(req,res,next)=>{
+      req.utc = new Date(req.date).toUTCString()
+        console.log(req.utc)
+      next()
+    },(req,res)=>{
+        res.send({unix:req.unix, utc: req.utc})
+      })
