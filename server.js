@@ -4,6 +4,7 @@
 // init project
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser')
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
@@ -31,23 +32,17 @@ var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
 
-// get time of right now
-app.get("/api/timestamp", function(req,res,next){
-  req.time = new Date().toString();
-        next();
-        }, (req,res)=>{
-          res.json({time:req.time})
-        })
 
-app.get("/api/timestamp/:date_string",function(req,res,next){
-    req.date = req.params.date_string
-    next();
-    },(req,res,next)=>{
-      req.utc = new Date(req.date).toUTCString()
-      next()
-    },(req,res,next)=>{
-      req.unix = new Date(req.date).getTime()
-      next()
-    },(req,res)=>{
-        res.send({unix:req.unix, utc: req.utc})
-      })
+// create get request for headers
+app.get('/api/whoami',function(req,res,next){
+  req.userAgent = req.headers['user-agent']
+  next()
+},(req,res,next)=>{
+  req.language = req.headers['accept-language']
+  next()
+},(req,res,next)=>{
+  req.ipAdress = req.headers['x-forwarded-for'].split(',')[0]
+  next()
+},(req,res)=>{
+  res.send({ipaddress:req.ipAdress,language:req.language,software:req.userAgent})
+})
